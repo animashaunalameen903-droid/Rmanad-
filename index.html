@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Daily Tracker">
+<title>Daily Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root {
+  --bg:       #0f0f0f;
+  --bg2:      #191919;
+  --bg3:      #232323;
+  --bg4:      #2d2d2d;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #f0ede8;
+  --text2:    #9a9690;
+  --text3:    #5c5a57;
+  --gold:     #c8a97e;
+  --gold2:    rgba(200,169,126,0.15);
+  --green:    #8fbe9f;
+  --green2:   rgba(143,190,159,0.14);
+  --red:      #c97a7a;
+  --red2:     rgba(201,122,122,0.12);
+  --amber:    #c9a87a;
+  --amber2:   rgba(201,168,122,0.13);
+  --blue:     #7a9ec9;
+  --blue2:    rgba(122,158,201,0.13);
+  --r:        14px;
+  --r2:       8px;
+  --fh:       'DM Serif Display', serif;
+  --fb:       'DM Sans', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:15px;line-height:1.5;min-height:100vh;overscroll-behavior:none}
+.app{max-width:480px;margin:0 auto;padding-bottom:96px;min-height:100vh}
+
+/* ── HEADER ── */
+.hdr{padding:2rem 1.25rem 1rem;border-bottom:.5px solid var(--border)}
+.hdr-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.2rem}
+.hdr h1{font-family:var(--fh);font-size:26px;font-weight:400;letter-spacing:-.02em}
+.hdr-logo{width:36px;height:36px;flex-shrink:0}
+.hdr-sub{font-size:13px;color:var(--text2)}
+
+/* ── MONEY CARD ── */
+.money-card{margin:1rem 1.25rem;background:var(--bg2);border:.5px solid var(--border2);border-radius:var(--r);padding:1.25rem;display:flex;align-items:center;gap:1rem}
+.money-left{flex:1}
+.money-lbl{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.money-amt{font-family:var(--fh);font-size:40px;color:var(--gold);letter-spacing:-.02em;line-height:1}
+.wk-dots{display:flex;gap:4px;margin-top:8px}
+.wd{width:24px;height:5px;border-radius:3px;background:var(--bg4)}
+.wd.done{background:var(--green)}
+.wd.missed{background:var(--red);opacity:.5}
+.wd.today{border:1px solid var(--border2)}
+.money-note{font-size:12px;color:var(--text2);max-width:140px;text-align:right;line-height:1.45}
+
+/* ── TABS ── */
+.tabs{display:flex;margin:0 1.25rem 1rem;background:var(--bg2);border-radius:var(--r2);padding:3px;gap:2px}
+.tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;color:var(--text3);border-radius:6px;transition:all .18s;user-select:none}
+.tab.active{background:var(--bg3);color:var(--text)}
+
+/* ── TAB CONTENT ── */
+.tc{display:none;padding:0 1.25rem}
+.tc.active{display:block}
+
+/* ── MOTIVATION ── */
+.motiv{font-size:13px;color:var(--text2);font-style:italic;line-height:1.7;padding:10px 14px;background:var(--bg2);border-left:2px solid var(--gold);border-radius:0 var(--r2) var(--r2) 0;margin-bottom:.75rem}
+
+/* ── SECTION ── */
+.sec{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:.75rem;animation:fadeIn .2s ease both}
+.sec-lbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:.75rem}
+
+/* ── TASK ROW ── */
+.trow{display:flex;align-items:flex-start;gap:12px}
+.tinfo{flex:1}
+.tname{font-size:14px;font-weight:500}
+.tsub{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.4}
+.tlogged{font-size:11px;color:var(--green);margin-top:4px;font-weight:500;display:none}
+.tmissed{font-size:11px;color:var(--red);margin-top:4px;font-weight:500;display:none}
+.tcountdown{font-size:11px;color:var(--amber);margin-top:4px;font-weight:500}
+.spill{display:inline-block;padding:2px 10px;background:var(--gold2);color:var(--gold);border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.04em;margin-bottom:4px}
+
+/* ── CHECK BUTTON ── */
+.cbtn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;color:var(--text3);font-size:17px;font-family:var(--fb)}
+.cbtn:hover:not(:disabled){border-color:var(--green);background:var(--green2);color:var(--green)}
+.cbtn.done{border-color:var(--green);background:var(--green2);color:var(--green)}
+.cbtn.missed{border-color:var(--red);background:var(--red2);color:var(--red);cursor:not-allowed}
+.cbtn:disabled{cursor:not-allowed}
+
+/* ── TEXTAREA ── */
+textarea{width:100%;margin-top:10px;padding:10px 12px;font-size:13px;font-family:var(--fb);border:.5px solid var(--border);border-radius:var(--r2);background:var(--bg3);color:var(--text);resize:none;min-height:62px;line-height:1.5}
+textarea::placeholder{color:var(--text3)}
+textarea:focus{outline:none;border-color:var(--border2)}
+textarea:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── LOCK ── */
+.lock-wrap{text-align:center;padding:3rem 1.5rem}
+.lock-icon{font-size:46px;margin-bottom:1rem;display:block}
+.lock-ttl{font-family:var(--fh);font-size:22px;margin-bottom:8px}
+.lock-sub{font-size:13px;color:var(--text2);line-height:1.65}
+.lock-cd{font-size:12px;color:var(--text3);margin-top:12px}
+
+/* ── SLEEP BANNER ── */
+.sleep-banner{background:var(--amber2);border:.5px solid rgba(201,168,122,.3);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--amber);margin-bottom:.75rem;display:none}
+
+/* ── HISTORY ── */
+.wk-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.stat-card{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r2);padding:12px;text-align:center}
+.stat-num{font-family:var(--fh);font-size:24px}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+.hday{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:.75rem;animation:fadeIn .2s ease both}
+.hday-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hday-date{font-size:14px;font-weight:500}
+.hscore{font-size:13px;font-weight:600}
+.hscore.full{color:var(--green)}
+.hscore.part{color:var(--amber)}
+.hscore.poor{color:var(--red)}
+.htags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.htag{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500}
+.htag.done{background:var(--green2);color:var(--green)}
+.htag.missed{background:var(--red2);color:var(--red)}
+.hnote{font-size:12px;color:var(--text2);font-style:italic;line-height:1.4}
+
+/* ── BACKUP ── */
+.bsec{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:.75rem}
+.blbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:.75rem}
+.bbtn{width:100%;padding:11px;border:.5px solid var(--border2);border-radius:var(--r2);background:transparent;color:var(--text);font-size:14px;font-family:var(--fb);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;transition:background .15s}
+.bbtn:last-child{margin-bottom:0}
+.bbtn:hover{background:var(--bg3)}
+.bbtn.primary{background:var(--gold);border-color:var(--gold);color:#0f0f0f;font-weight:600}
+.bbtn.primary:hover{opacity:.85}
+.bbtn.danger{border-color:rgba(201,122,122,.35);color:var(--red)}
+.bbtn:disabled{opacity:.45;cursor:not-allowed}
+
+/* GOOGLE ID INPUT AREA */
+.gid-area{margin-bottom:.75rem}
+.gid-lbl{font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.5}
+.gid-input{width:100%;padding:10px 12px;font-size:13px;font-family:var(--fb);border:.5px solid var(--border2);border-radius:var(--r2);background:var(--bg3);color:var(--text);margin-bottom:8px}
+.gid-input::placeholder{color:var(--text3)}
+.gid-input:focus{outline:none;border-color:var(--gold)}
+.sync-status{font-size:12px;text-align:center;color:var(--text3);margin-bottom:8px;min-height:18px}
+.sync-status.ok{color:var(--green)}
+.sync-status.err{color:var(--red)}
+.sync-status.working{color:var(--amber)}
+
+/* ── DASHBOARD ── */
+.dash-hdr{padding:2rem 1.25rem 1rem;border-bottom:.5px solid var(--border);margin-bottom:1rem}
+.dash-hdr h1{font-family:var(--fh);font-size:26px;font-weight:400}
+.dash-hdr .dsub{font-size:13px;color:var(--text2);margin-top:3px}
+.dash-inner{padding:0 1.25rem}
+.add-row{display:flex;gap:8px;margin-bottom:1rem}
+.add-inp{flex:1;padding:10px 14px;font-size:14px;font-family:var(--fb);border:.5px solid var(--border2);border-radius:var(--r2);background:var(--bg2);color:var(--text)}
+.add-inp::placeholder{color:var(--text3)}
+.add-inp:focus{outline:none;border-color:var(--gold)}
+.add-btn{padding:10px 16px;border:.5px solid var(--gold);border-radius:var(--r2);background:transparent;color:var(--gold);font-size:14px;font-family:var(--fb);cursor:pointer;white-space:nowrap}
+.add-btn:hover{background:var(--gold2)}
+.pcard{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:.75rem;animation:fadeIn .2s ease both}
+.ptop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.pname{font-size:15px;font-weight:500}
+.ptoday{font-size:12px;color:var(--text2);margin-top:2px}
+.pmoney{font-family:var(--fh);font-size:20px;color:var(--gold)}
+.pstreak{display:flex;gap:4px;margin-bottom:8px}
+.pd{width:26px;height:6px;border-radius:3px;background:var(--bg4)}
+.pd.done{background:var(--green)}
+.pd.missed{background:var(--red);opacity:.5}
+.pd.today{border:1px solid var(--border2)}
+.pmeta{font-size:12px;color:var(--text3);display:flex;gap:10px}
+.rmv{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:4px;transition:color .15s}
+.rmv:hover{color:var(--red)}
+.exit-btn{width:100%;padding:11px;border:.5px solid var(--border2);border-radius:var(--r2);background:transparent;color:var(--text2);font-size:14px;font-family:var(--fb);cursor:pointer;margin-top:.5rem}
+.exit-btn:hover{background:var(--bg2)}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ═══════════════════════════════ MAIN APP ═══════════════════════════════ -->
+  <div id="main-app">
+
+    <div class="hdr">
+      <div class="hdr-row">
+        <h1>Daily Tracker</h1>
+        <img src="icons/icon-192.png" class="hdr-logo" alt="app logo" onerror="this.style.display='none'">
+      </div>
+      <div class="hdr-sub">Good morning, Ramadan &nbsp;·&nbsp; Good morning, Mum</div>
+    </div>
+
+    <!-- MONEY CARD -->
+    <div class="money-card">
+      <div class="money-left">
+        <div class="money-lbl">Pocket money</div>
+        <div class="money-amt" id="money-display">₦200</div>
+        <div class="wk-dots" id="wk-dots"></div>
+      </div>
+      <div class="money-note" id="money-note">Complete 5 full days to earn +₦100 this week</div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" id="tb-today" onclick="switchTab('today')">Today</div>
+      <div class="tab" id="tb-history" onclick="switchTab('history')">History</div>
+      <div class="tab" id="tb-backup" onclick="switchTab('backup')" style="display:none">Backup</div>
+    </div>
+
+    <!-- ─── TODAY ─── -->
+    <div class="tc active" id="tc-today">
+
+      <!-- Locked overlay -->
+      <div id="lock-overlay" style="display:none">
+        <div class="lock-wrap">
+          <span class="lock-icon">🔒</span>
+          <div class="lock-ttl">Today is locked</div>
+          <div class="lock-sub">The day closed at 10pm.<br>Anything not tapped is marked missed.<br>Come back tomorrow — fresh start.</div>
+          <div class="lock-cd" id="lock-cd"></div>
+        </div>
+      </div>
+
+      <div id="today-tasks">
+        <div class="sleep-banner" id="sleep-banner">⏰ Less than 30 minutes to 10pm — log your sleep now before it auto-locks.</div>
+        <div class="motiv" id="motiv-1"></div>
+
+        <!-- LEAVE -->
+        <div class="sec">
+          <div class="sec-lbl">Leave for school / work</div>
+          <div class="trow">
+            <div class="tinfo">
+              <div class="tname" id="leave-name">Leave by 7:00am</div>
+              <div class="tsub" id="leave-sub"></div>
+              <div class="tlogged" id="leave-logged"></div>
+              <div class="tmissed" id="leave-missed">Missed — not logged before 7am</div>
+              <div class="tcountdown" id="leave-cd"></div>
+            </div>
+            <button class="cbtn" id="leave-btn" onclick="logTask('leave')" aria-label="Mark leave done">✓</button>
+          </div>
+        </div>
+
+        <div class="motiv" id="motiv-2"></div>
+
+        <!-- WORK LOG -->
+        <div class="sec">
+          <div class="sec-lbl">After school / work</div>
+          <div class="trow">
+            <div class="tinfo">
+              <div class="tname">What did you do today?</div>
+              <div class="tsub">Be honest. What happened and what did you learn?</div>
+              <div class="tlogged" id="work-logged"></div>
+              <div class="tmissed" id="work-missed">Not logged</div>
+            </div>
+            <button class="cbtn" id="work-btn" onclick="logTask('work')" aria-label="Mark work done">✓</button>
+          </div>
+          <textarea id="work-text" placeholder="What you did at school or work, and one thing you learnt..." rows="3"></textarea>
+        </div>
+
+        <!-- STUDIES -->
+        <div class="sec">
+          <div class="sec-lbl">Studies — 20 minutes</div>
+          <div class="trow">
+            <div class="tinfo">
+              <div class="spill" id="subject-pill"></div>
+              <div class="tname">Study for 20 minutes</div>
+              <div class="tsub">One subject. Full focus. No phone. No shortcuts.</div>
+              <div class="tlogged" id="study-logged"></div>
+              <div class="tmissed" id="study-missed">Not logged</div>
+            </div>
+            <button class="cbtn" id="study-btn" onclick="logTask('study')" aria-label="Mark study done">✓</button>
+          </div>
+          <textarea id="study-text" placeholder="What topic? What did you learn?" rows="3"></textarea>
+        </div>
+
+        <!-- CHORES -->
+        <div class="sec">
+          <div class="sec-lbl">House chores</div>
+          <div class="trow">
+            <div class="tinfo">
+              <div class="tname">What chore did you do?</div>
+              <div class="tsub">Mum should not have to ask twice. You do it without being told.</div>
+              <div class="tlogged" id="chores-logged"></div>
+              <div class="tmissed" id="chores-missed">Not logged</div>
+            </div>
+            <button class="cbtn" id="chores-btn" onclick="logTask('chores')" aria-label="Mark chores done">✓</button>
+          </div>
+          <textarea id="chores-text" placeholder="What did you do and when?" rows="2"></textarea>
+        </div>
+
+        <!-- MUM'S REQUEST -->
+        <div class="sec">
+          <div class="sec-lbl">One thing Mum asked</div>
+          <div class="trow">
+            <div class="tinfo">
+              <div class="tname">You did it without attitude</div>
+              <div class="tsub">No arrogance. No eye-rolling. No argument. You just did it.</div>
+              <div class="tlogged" id="mum-logged"></div>
+              <div class="tmissed" id="mum-missed">Not logged</div>
+            </div>
+            <button class="cbtn" id="mum-btn" onclick="logTask('mum')" aria-label="Mark mum task done">✓</button>
+          </div>
+          <textarea id="mum-text" placeholder="What did she ask, and how did you respond?" rows="2"></textarea>
+        </div>
+
+        <div class="motiv" id="motiv-3"></div>
+
+        <!-- SLEEP -->
+        <div class="sec">
+          <div class="sec-lbl">Sleep by 10:00pm</div>
+          <div class="trow">
+            <div class="tinfo">
+              <div class="tname">In bed, phone down</div>
+              <div class="tsub">Your body, your mind, and your future all need rest. Tap before you close your eyes.</div>
+              <div class="tlogged" id="sleep-logged"></div>
+              <div class="tmissed" id="sleep-missed">Missed — not logged before 10pm</div>
+              <div class="tcountdown" id="sleep-cd"></div>
+            </div>
+            <button class="cbtn" id="sleep-btn" onclick="logTask('sleep')" aria-label="Mark sleep done">✓</button>
+          </div>
+        </div>
+
+      </div><!-- end today-tasks -->
+    </div><!-- end tc-today -->
+
+    <!-- ─── HISTORY ─── -->
+    <div class="tc" id="tc-history">
+      <div class="wk-summary">
+        <div class="stat-card"><div class="stat-num" id="h-days">0</div><div class="stat-lbl">Days done</div></div>
+        <div class="stat-card"><div class="stat-num" id="h-money" style="color:var(--gold)">₦200</div><div class="stat-lbl">Pocket money</div></div>
+        <div class="stat-card"><div class="stat-num" id="h-change" style="color:var(--text3)">—</div><div class="stat-lbl">Next change</div></div>
+      </div>
+      <div id="history-list"></div>
+    </div>
+
+    <!-- ─── BACKUP (dashboard-only) ─── -->
+    <div class="tc" id="tc-backup">
+
+      <!-- GOOGLE DRIVE — main input area -->
+      <div class="bsec">
+        <div class="blbl">Google Drive auto-sync</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:.75rem;line-height:1.6">
+          Paste your Google OAuth Client ID below, tap <strong style="color:var(--text);font-weight:500">Connect</strong>, then sign in once. After that, one tap saves everything to your Drive.
+        </p>
+        <div class="gid-area">
+          <div class="gid-lbl">Your Google Client ID <span style="color:var(--text3)">(from Google Cloud Console)</span></div>
+          <input class="gid-input" id="gid-input" type="text" placeholder="xxxxxxxxxx-xxxx.apps.googleusercontent.com" autocomplete="off" autocorrect="off" spellcheck="false"/>
+        </div>
+        <div class="sync-status" id="sync-status">Not connected</div>
+        <button class="bbtn primary" id="connect-btn" onclick="connectGoogle()">Connect to Google Drive</button>
+        <button class="bbtn" id="sync-btn" onclick="syncToDrive()" style="display:none">↑ Save to Drive now</button>
+        <button class="bbtn" id="restore-drive-btn" onclick="restoreFromDrive()" style="display:none">↓ Restore from Drive</button>
+      </div>
+
+      <!-- MANUAL BACKUP -->
+      <div class="bsec">
+        <div class="blbl">Manual export</div>
+        <button class="bbtn primary" onclick="exportData()">↓ Download backup file</button>
+        <button class="bbtn" onclick="copyData()">⎘ Copy to clipboard</button>
+        <button class="bbtn danger" onclick="clearAll()">⚠ Clear all data</button>
+      </div>
+
+      <!-- RESTORE -->
+      <div class="bsec">
+        <div class="blbl">Restore from file</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:.75rem;line-height:1.5">Paste previously exported data to restore:</p>
+        <textarea id="restore-text" placeholder="Paste backup data here..." rows="4"></textarea>
+        <button class="bbtn" onclick="restoreData()" style="margin-top:8px">↺ Restore</button>
+      </div>
+
+    </div><!-- end tc-backup -->
+
+  </div><!-- end main-app -->
+
+  <!-- ═══════════════════════════════ DASHBOARD ═══════════════════════════════ -->
+  <div id="dashboard-view" style="display:none">
+    <div class="dash-hdr">
+      <h1>Family Dashboard</h1>
+      <div class="dsub" id="dash-date"></div>
+    </div>
+    <div class="dash-inner">
+
+      <!-- Backup shortcut in dashboard -->
+      <div class="bsec">
+        <div class="blbl">Sync &amp; backup</div>
+        <div class="gid-area">
+          <div class="gid-lbl">Google Client ID</div>
+          <input class="gid-input" id="dash-gid-input" type="text" placeholder="Paste Client ID here..." autocorrect="off" spellcheck="false"/>
+        </div>
+        <div class="sync-status" id="dash-sync-status">Not connected</div>
+        <button class="bbtn primary" id="dash-connect-btn" onclick="connectGoogleDash()">Connect</button>
+        <button class="bbtn" id="dash-sync-btn" onclick="syncToDrive()" style="display:none">↑ Sync to Drive</button>
+        <button class="bbtn" onclick="exportData()" style="margin-top:4px">↓ Download file</button>
+      </div>
+
+      <!-- Add people -->
+      <div class="bsec">
+        <div class="blbl">Track another person</div>
+        <div class="add-row">
+          <input class="add-inp" id="new-person" placeholder="Enter name..." />
+          <button class="add-btn" onclick="addPerson()">+ Add</button>
+        </div>
+      </div>
+
+      <div id="dashboard-people"></div>
+      <button class="exit-btn" onclick="exitDashboard()">← Back to tracker</button>
+    </div>
+  </div>
+
+</div><!-- end app -->
+
+<script>
+// ─── CONSTANTS ───
+const SUBJECTS = ['Physics','Chemistry','Biology','Agric','English','Mathematics','Further Maths','Civic','Economics'];
+const TASKS    = ['leave','work','study','chores','mum','sleep'];
+const TNAMES   = {leave:'Leave',work:'After school',study:'Studies',chores:'Chores',mum:"Mum's request",sleep:'Sleep'};
+const MOTIVATIONS = [
+  "Your father worked hard so you could have a future. Don't let his sacrifice go to waste.",
+  "Mum is getting older every year. Every kind act, every done chore — she feels it. Don't make her beg.",
+  "The boy who refuses discipline today becomes the man full of regret tomorrow.",
+  "You are the man of the house when no one else is there. Step into that responsibility, not away from it.",
+  "Rudeness is the armour of the weak. The strong man is calm, respectful, and steady under pressure.",
+  "Your future self is watching what you do right now. What does he see?",
+  "Dad didn't raise you to be lazy or rude. He raised you to be great. That choice is yours every single day.",
+  "Mum has given up so much for you. A kind word and a done chore costs nothing and means everything to her.",
+  "Bad habits are easy to start and very hard to break. Good habits are hard to build — and they carry you far.",
+  "Every morning you choose to do the right thing, you become a little more of the person you're meant to be.",
+  "Doing only what you want, when you want it — that road ends badly. Ask any man who walked it.",
+  "Your siblings are watching from far away. Make them proud, not worried."
+];
+const DASHBOARD_KW = 'alameen2025dashboard';
+const BACKUP_FILE  = 'ramadan_tracker_backup.json';
+
+// ─── STATE ───
+let _kbuf = '';
+let dashMode = false;
+let gToken = null;
+let gClient = null;
+let driveFileId = null;
+
+function gs()  { try{return JSON.parse(localStorage.getItem('rt_data')||'{}')}catch{return{}} }
+function ss(s) { localStorage.setItem('rt_data',JSON.stringify(s)) }
+function todayKey() { const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}` }
+function p2(n) { return String(n).padStart(2,'0') }
+function dow()  { return new Date().getDay() }
+function after10(){ return new Date().getHours()>=22 }
+function isSun(){ return dow()===0 }
+function subjectFor(key){ const b=new Date('2025-01-06'),d=new Date(key),diff=Math.floor((d-b)/86400000); return SUBJECTS[((diff%SUBJECTS.length)+SUBJECTS.length)%SUBJECTS.length] }
+function motiv(slot){ const d=new Date(); return MOTIVATIONS[(d.getDate()*3+slot)%MOTIVATIONS.length] }
+function fmtTime(ts){ if(!ts)return''; const d=new Date(ts); return `Logged ${p2(d.getHours())}:${p2(d.getMinutes())}` }
+function countdown(h){ const now=new Date(),t=new Date(); t.setHours(h,0,0,0); const diff=t-now; if(diff<=0||diff>3600000)return''; const m=Math.floor(diff/60000); return m>0?`${m}m remaining`:`<1m remaining` }
+function weekKeys(){ const now=new Date(),keys=[]; for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);keys.push(`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`)} return keys }
+function dayComplete(d){ return d&&TASKS.every(t=>d[t]&&!d[t].missed) }
+function weekDone(){ const s=gs(),wk=weekKeys(); return wk.filter(k=>dayComplete(s[k])).length }
+
+// ─── LOAD TODAY ───
+function loadToday(){
+  const key=todayKey(), s=gs(), today=s[key]||{}, locked=after10();
+  const now=new Date();
+
+  document.getElementById('display-date')??(0);
+  const dstr=now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  const dateEl=document.querySelector('.hdr-sub');
+  if(dateEl) dateEl.textContent=`Good morning, Ramadan · Good morning, Mum · ${dstr}`;
+
+  // Money
+  const money=s.money||200;
+  document.getElementById('money-display').textContent=`₦${money}`;
+  const wc=weekDone();
+  document.getElementById('money-note').textContent=wc>=5?`${wc}/7 days — earning +₦100 ✓`:`${wc}/7 days — need ${5-wc} more for +₦100`;
+
+  // Week dots
+  const wk=weekKeys(), dotsEl=document.getElementById('wk-dots');
+  dotsEl.innerHTML=wk.map(k=>{
+    const isToday=k===key, d=s[k];
+    let cls=isToday?'today':'';
+    if(d) cls+=' '+(dayComplete(d)?'done':'missed');
+    return `<div class="wd ${cls}"></div>`;
+  }).join('');
+
+  // Lock
+  document.getElementById('lock-overlay').style.display=locked?'block':'none';
+  document.getElementById('today-tasks').style.display=locked?'none':'block';
+  if(locked){
+    autoLock(key,s,today);
+    const tom=new Date(); tom.setDate(tom.getDate()+1); tom.setHours(0,0,0,0);
+    const diff=tom-now, h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000);
+    document.getElementById('lock-cd').textContent=`Unlocks in ${h}h ${m}m`;
+    return;
+  }
+
+  // Sunday auto-log
+  if(isSun()&&!today.leave&&now.getHours()>=12){
+    if(!s[key])s[key]={};
+    s[key].leave={ts:new Date().setHours(12,0,0,0),auto:true};
+    ss(s);
+  }
+
+  // Motivations
+  document.getElementById('motiv-1').textContent=motiv(0);
+  document.getElementById('motiv-2').textContent=motiv(1);
+  document.getElementById('motiv-3').textContent=motiv(2);
+  document.getElementById('subject-pill').textContent=subjectFor(key);
+
+  // Leave label
+  const ln=document.getElementById('leave-name'), ls=document.getElementById('leave-sub'), lb=document.getElementById('leave-btn');
+  if(isSun()){
+    ln.textContent='Sunday — rest day'; ls.textContent='Auto-logged at 12pm. Enjoy your Sunday.'; lb.style.display='none';
+  } else if(dow()===6){
+    ln.textContent='Leave for work by 7:00am'; ls.textContent='Saturday — work day. Be out before 7am sharp.';
+  } else {
+    ln.textContent='Leave for school by 7:00am'; ls.textContent='School day — tap before you walk out the door.';
+  }
+
+  // Countdowns
+  const lcd=countdown(7), scd=countdown(22);
+  document.getElementById('leave-cd').textContent=lcd?`⏰ ${lcd}`:'';
+  document.getElementById('sleep-cd').textContent=scd?`⏰ ${scd}`:'';
+  document.getElementById('sleep-banner').style.display=(now.getHours()===21&&now.getMinutes()>=30)?'block':'none';
+
+  // Task states
+  TASKS.forEach(t=>{
+    const btn=document.getElementById(t+'-btn');
+    const logEl=document.getElementById(t+'-logged');
+    const missEl=document.getElementById(t+'-missed');
+    const txtEl=document.getElementById(t+'-text');
+    if(!btn)return;
+    const td=today[t];
+    if(td){
+      if(td.missed){
+        btn.className='cbtn missed'; btn.disabled=true; btn.textContent='✗';
+        if(missEl)missEl.style.display='block';
+      } else {
+        btn.className='cbtn done'; btn.disabled=true; btn.textContent='✓';
+        if(logEl){logEl.textContent=fmtTime(td.ts);logEl.style.display='block';}
+        if(txtEl){txtEl.value=td.text||'';txtEl.disabled=true;}
+      }
+    }
+  });
+}
+
+function logTask(task){
+  if(after10())return;
+  const key=todayKey(), s=gs();
+  if(!s[key])s[key]={};
+  if(s[key][task])return;
+  const txtEl=document.getElementById(task+'-text');
+  s[key][task]={ts:Date.now(),text:txtEl?txtEl.value.trim():''};
+  ss(s);
+  const btn=document.getElementById(task+'-btn');
+  btn.className='cbtn done'; btn.disabled=true; btn.textContent='✓';
+  const logEl=document.getElementById(task+'-logged');
+  if(logEl){logEl.textContent=fmtTime(Date.now());logEl.style.display='block';}
+  if(txtEl)txtEl.disabled=true;
+}
+
+function autoLock(key,s,today){
+  let changed=false;
+  TASKS.forEach(t=>{if(!today[t]){if(!s[key])s[key]={};s[key][t]={ts:null,missed:true};changed=true;}});
+  if(changed){ss(s);adjustMoney(s);}
+}
+
+function adjustMoney(s){
+  if(dow()!==0)return;
+  const tk=todayKey(); if(s.week_adj===tk)return;
+  const wc=weekDone();
+  let money=s.money||200;
+  money=wc>=5?Math.min(500,money+100):Math.max(0,money-100);
+  s.money=money; s.week_adj=tk; ss(s);
+}
+
+// ─── TABS ───
+function switchTab(tab){
+  ['today','history','backup'].forEach(t=>{
+    document.getElementById('tc-'+t).classList.toggle('active',t===tab);
+    const b=document.getElementById('tb-'+t); if(b)b.classList.toggle('active',t===tab);
+  });
+  if(tab==='history')loadHistory();
+}
+
+// ─── HISTORY ───
+function loadHistory(){
+  const s=gs(), keys=Object.keys(s).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).sort().reverse();
+  const wc=weekDone(), money=s.money||200;
+  document.getElementById('h-days').textContent=wc;
+  document.getElementById('h-money').textContent=`₦${money}`;
+  const chEl=document.getElementById('h-change');
+  if(wc>=5){chEl.textContent='+₦100';chEl.style.color='var(--green)';}
+  else{chEl.textContent='-₦100';chEl.style.color='var(--red)';}
+  const cont=document.getElementById('history-list');
+  if(!keys.length){cont.innerHTML='<p style="text-align:center;color:var(--text3);padding:2rem;font-size:13px">No history yet. Complete your first day.</p>';return;}
+  cont.innerHTML=keys.map(k=>{
+    const d=s[k], dt=new Date(k);
+    const dstr=dt.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'});
+    const done=TASKS.filter(t=>d[t]&&!d[t].missed).length;
+    const sc=done===6?'full':done>=4?'part':'poor';
+    const tags=TASKS.map(t=>`<span class="htag ${(d[t]&&!d[t].missed)?'done':'missed'}">${TNAMES[t]}</span>`).join('');
+    const note=d.work&&d.work.text?`<div class="hnote">${d.work.text.substring(0,100)}${d.work.text.length>100?'…':''}</div>`:'';
+    return `<div class="hday"><div class="hday-hdr"><div class="hday-date">${dstr}</div><div class="hscore ${sc}">${done}/6</div></div><div class="htags">${tags}</div>${note}</div>`;
+  }).join('');
+}
+
+// ─── GOOGLE DRIVE ───
+function setSyncStatus(msg,cls,dash=false){
+  ['sync-status','dash-sync-status'].forEach(id=>{
+    const el=document.getElementById(id); if(el){el.textContent=msg;el.className='sync-status '+cls;}
+  });
+}
+
+function initGoogleClient(clientId, onSuccess){
+  if(typeof google==='undefined'){setSyncStatus('Google API not loaded. Check internet connection.','err');return;}
+  gClient=google.accounts.oauth2.initTokenClient({
+    client_id:clientId,
+    scope:'https://www.googleapis.com/auth/drive.file',
+    callback:(resp)=>{
+      if(resp.error){setSyncStatus('Sign-in failed: '+resp.error,'err');return;}
+      gToken=resp.access_token;
+      localStorage.setItem('rt_gcid',clientId);
+      setSyncStatus('Connected to Google Drive ✓','ok');
+      ['sync-btn','restore-drive-btn','dash-sync-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='flex';});
+      ['connect-btn','dash-connect-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Reconnect';});
+      if(onSuccess)onSuccess();
+    }
+  });
+  gClient.requestAccessToken();
+}
+
+function connectGoogle(){
+  const val=document.getElementById('gid-input').value.trim()||localStorage.getItem('rt_gcid')||'';
+  if(!val){setSyncStatus('Paste your Client ID first','err');return;}
+  setSyncStatus('Connecting…','working');
+  initGoogleClient(val);
+}
+
+function connectGoogleDash(){
+  const val=document.getElementById('dash-gid-input').value.trim()||localStorage.getItem('rt_gcid')||'';
+  if(!val){setSyncStatus('Paste your Client ID first','err');return;}
+  setSyncStatus('Connecting…','working');
+  initGoogleClient(val);
+}
+
+async function findFile(){
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${BACKUP_FILE}' and trashed=false&spaces=drive&fields=files(id)`,{headers:{Authorization:`Bearer ${gToken}`}});
+  const d=await r.json(); return d.files&&d.files.length?d.files[0].id:null;
+}
+
+async function syncToDrive(){
+  if(!gToken){setSyncStatus('Connect to Google first','err');return;}
+  setSyncStatus('Saving…','working');
+  const content=localStorage.getItem('rt_data')||'{}';
+  const blob=new Blob([content],{type:'application/json'});
+  const meta=JSON.stringify({name:BACKUP_FILE,mimeType:'application/json'});
+  try{
+    driveFileId=driveFileId||await findFile();
+    const url=driveFileId?`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`:'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    const method=driveFileId?'PATCH':'POST';
+    const form=new FormData();
+    form.append('metadata',new Blob([meta],{type:'application/json'}));
+    form.append('file',blob);
+    const r=await fetch(url,{method,headers:{Authorization:`Bearer ${gToken}`},body:form});
+    const d=await r.json(); driveFileId=d.id;
+    const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    setSyncStatus(`Saved to Drive at ${t} ✓`,'ok');
+  }catch{setSyncStatus('Sync failed — check connection','err');}
+}
+
+async function restoreFromDrive(){
+  if(!gToken){setSyncStatus('Connect to Google first','err');return;}
+  setSyncStatus('Restoring…','working');
+  try{
+    const fid=driveFileId||await findFile();
+    if(!fid){setSyncStatus('No backup found in Drive','err');return;}
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`,{headers:{Authorization:`Bearer ${gToken}`}});
+    const text=await r.text(); JSON.parse(text);
+    localStorage.setItem('rt_data',text);
+    setSyncStatus('Restored from Drive ✓','ok');
+    loadToday();
+  }catch{setSyncStatus('Restore failed','err');}
+}
+
+function exportData(){
+  const b=new Blob([localStorage.getItem('rt_data')||'{}'],{type:'application/json'});
+  const u=URL.createObjectURL(b), a=document.createElement('a');
+  a.href=u; a.download=`ramadan_tracker_${todayKey()}.json`; a.click(); URL.revokeObjectURL(u);
+}
+
+function copyData(){
+  navigator.clipboard.writeText(localStorage.getItem('rt_data')||'{}')
+    .then(()=>alert('Copied! Paste into Google Drive, Notes, or WhatsApp to save.'));
+}
+
+function clearAll(){
+  if(confirm('Clear ALL data? This cannot be undone.')){{localStorage.removeItem('rt_data');loadToday();}}
+}
+
+function restoreData(){
+  const t=document.getElementById('restore-text').value.trim();
+  try{JSON.parse(t);localStorage.setItem('rt_data',t);alert('Restored.');loadToday();}
+  catch{alert('Invalid data. Paste the full exported text.');}
+}
+
+// ─── DASHBOARD ───
+document.addEventListener('keydown',e=>{
+  if(e.key&&e.key.length===1){
+    _kbuf+=e.key;
+    if(_kbuf.length>DASHBOARD_KW.length)_kbuf=_kbuf.slice(-DASHBOARD_KW.length);
+    if(_kbuf===DASHBOARD_KW)openDashboard();
+  }
+});
+
+function openDashboard(){
+  dashMode=true;
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('dashboard-view').style.display='block';
+  document.getElementById('tb-backup').style.display='';
+  document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  // Pre-fill saved client ID
+  const saved=localStorage.getItem('rt_gcid')||'';
+  if(saved){document.getElementById('gid-input').value=saved;document.getElementById('dash-gid-input').value=saved;}
+  renderDashboard();
+}
+
+function exitDashboard(){
+  dashMode=false;
+  document.getElementById('dashboard-view').style.display='none';
+  document.getElementById('main-app').style.display='block';
+  document.getElementById('tb-backup').style.display='none';
+}
+
+function getPeople(){ try{return JSON.parse(localStorage.getItem('rt_people')||'["Ramadan"]')}catch{return['Ramadan']} }
+function setPeople(p){ localStorage.setItem('rt_people',JSON.stringify(p)) }
+
+function addPerson(){
+  const n=document.getElementById('new-person').value.trim(); if(!n)return;
+  const p=getPeople(); if(!p.includes(n)){p.push(n);setPeople(p);}
+  document.getElementById('new-person').value=''; renderDashboard();
+}
+
+function removePerson(name){
+  if(name==='Ramadan'){alert('Cannot remove Ramadan.');return;}
+  if(!confirm(`Remove ${name}?`))return;
+  setPeople(getPeople().filter(p=>p!==name)); renderDashboard();
+}
+
+function renderDashboard(){
+  const s=gs(), wk=weekKeys(), tk=todayKey(), people=getPeople();
+  document.getElementById('dashboard-people').innerHTML=people.map(name=>{
+    const isMain=name==='Ramadan', ps=isMain?s:{};
+    const money=isMain?(s.money||200):200;
+    const td=ps[tk]||{};
+    const tdone=TASKS.filter(t=>td[t]&&!td[t].missed).length;
+    const wc=wk.filter(k=>dayComplete(ps[k])).length;
+    const dots=wk.map(k=>{
+      const isToday=k===tk, d=ps[k]; let cls=isToday?'today':'';
+      if(d)cls+=' '+(dayComplete(d)?'done':'missed');
+      return `<div class="pd ${cls}"></div>`;
+    }).join('');
+    return `<div class="pcard">
+      <div class="ptop">
+        <div><div class="pname">${name}</div><div class="ptoday">Today: ${tdone}/6 tasks</div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="pmoney">₦${money}</div>
+          ${!isMain?`<button class="rmv" onclick="removePerson('${name}')" aria-label="Remove ${name}">✕</button>`:''}
+        </div>
+      </div>
+      <div class="pstreak">${dots}</div>
+      <div class="pmeta"><span>${wc}/7 days</span><span>·</span><span>${wc>=5?'Earning +₦100 ✓':`Needs ${5-wc} more`}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ─── SERVICE WORKER ───
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+// ─── INIT ───
+loadToday();
+setInterval(()=>{ loadToday(); if(dashMode)renderDashboard(); }, 30000);
+</script>
+</body>
+</html>
